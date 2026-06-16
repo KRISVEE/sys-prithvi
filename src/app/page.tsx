@@ -71,14 +71,14 @@ export default function Hub() {
         transition={{ duration: 1, ease: "easeOut" }}
       >
         <h1
-          className={`text-4xl md:text-7xl font-bold tracking-tighter ${
+          className={`text-6xl md:text-8xl font-bold tracking-tighter ${
             glitch ? "text-red-500" : "text-white"
           }`}
         >
-          <ScrambleText text="ĀTMAN / INFRASTRUCTURE" />
+          <ScrambleText text="PRITHVI" />
         </h1>
         <p className="mt-6 text-gray-400 font-mono text-sm max-w-lg leading-relaxed uppercase tracking-widest">
-          Cognitive Modeling • Deep-Tech Simulations • Systems Architecture
+          Independent Builder • Data Science • Systems Architecture
         </p>
 
       </motion.div>
