@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import LiveTelemetry from "@/components/LiveTelemetry";
+import Comms from "@/components/Comms";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;':,./<>?";
 
@@ -78,11 +79,12 @@ export default function Hub() {
           <ScrambleText text="PRITHVI" />
         </h1>
         <p className="mt-6 text-gray-400 font-mono text-sm max-w-lg leading-relaxed uppercase tracking-widest">
-          Independent Builder • Data Science • Systems Architecture
+          Definition is a cage, my nature is just a bit too contradictory _-_
         </p>
 
       </motion.div>
       <LiveTelemetry />
+      <Comms />
     </div>
   );
 }
