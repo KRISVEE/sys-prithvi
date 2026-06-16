@@ -4,6 +4,39 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import LiveTelemetry from "@/components/LiveTelemetry";
 
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;':,./<>?";
+
+function ScrambleText({ text }: { text: string }) {
+  const [displayText, setDisplayText] = useState("");
+
+  useEffect(() => {
+    let iteration = 0;
+    const interval = setInterval(() => {
+      setDisplayText((prev) =>
+        text
+          .split("")
+          .map((char, index) => {
+            if (index < iteration) {
+              return text[index];
+            }
+            if (char === " ") return " ";
+            return ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+          })
+          .join("")
+      );
+
+      if (iteration >= text.length) {
+        clearInterval(interval);
+      }
+      iteration += 1 / 3; // Controls speed of reveal
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <span>{displayText}</span>;
+}
+
 export default function Hub() {
   const [glitch, setGlitch] = useState(false);
 
@@ -42,7 +75,7 @@ export default function Hub() {
             glitch ? "text-red-500" : "text-white"
           }`}
         >
-          ĀTMAN / INFRASTRUCTURE
+          <ScrambleText text="ĀTMAN / INFRASTRUCTURE" />
         </h1>
         <p className="mt-6 text-gray-400 font-mono text-sm max-w-lg leading-relaxed uppercase tracking-widest">
           Cognitive Modeling • Deep-Tech Simulations • Systems Architecture

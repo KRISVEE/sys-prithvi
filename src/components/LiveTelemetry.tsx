@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function LiveTelemetry() {
   const [time, setTime] = useState<string>("");
   const [uptime, setUptime] = useState<number>(0);
+  const [cogLoad, setCogLoad] = useState<number>(85);
 
   useEffect(() => {
     const startTime = Date.now();
@@ -12,7 +13,6 @@ export default function LiveTelemetry() {
     const update = () => {
       const now = Date.now();
       
-      // Update Time
       const date = new Date(now);
       const options: Intl.DateTimeFormatOptions = {
         timeZone: "Asia/Kolkata",
@@ -22,25 +22,36 @@ export default function LiveTelemetry() {
         hour12: false,
       };
       
-      // Format with milliseconds
       const timeString = new Intl.DateTimeFormat("en-IN", options).format(date);
       const ms = date.getMilliseconds().toString().padStart(3, "0");
       setTime(`${timeString}.${ms} IST`);
       
-      // Update Uptime
       setUptime((now - startTime) / 1000);
     };
 
     update();
     const interval = setInterval(update, 75);
-    return () => clearInterval(interval);
+    
+    // Cognitive Load Fluctuation
+    const cogInterval = setInterval(() => {
+      setCogLoad(Math.floor(Math.random() * (94 - 82 + 1) + 82));
+    }, 2000);
+    
+    return () => {
+      clearInterval(interval);
+      clearInterval(cogInterval);
+    };
   }, []);
 
   return (
     <div className="fixed bottom-8 right-8 z-50 pointer-events-none font-mono text-[10px] sm:text-xs tracking-widest text-gray-500 uppercase flex flex-col items-end gap-1 text-right">
       <div className="flex gap-4 w-64 justify-between">
-        <span>LOCATION:</span>
-        <span className="text-gray-300">CHN, IND [13.0827° N, 80.2707° E]</span>
+        <span>SYS.STATE:</span>
+        <span className="text-gray-300">NOMINALLY DECENTRALIZED</span>
+      </div>
+      <div className="flex gap-4 w-64 justify-between">
+        <span>COGNITIVE LOAD:</span>
+        <span className="text-gray-300">{cogLoad}%</span>
       </div>
       <div className="flex gap-4 w-64 justify-between">
         <span>LOCAL TIME:</span>
