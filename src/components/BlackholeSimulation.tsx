@@ -13,9 +13,7 @@ const BlackholeShaderMaterial = {
     uResolution: { value: new THREE.Vector2() }
   },
   vertexShader: `
-    varying vec2 vUv;
     void main() {
-      vUv = uv;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
@@ -24,53 +22,112 @@ const BlackholeShaderMaterial = {
     uniform float uCogLoad;
     uniform float uOnline;
     uniform vec2 uResolution;
-    varying vec2 vUv;
     
     // Minimalist noise function
     float hash(vec2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
     float noise(vec2 x) {
       vec2 i = floor(x);
       vec2 f = fract(x);
-      float a = hash(i);
-      float b = hash(i + vec2(1.0, 0.0));
-      float c = hash(i + vec2(0.0, 1.0));
-      float d = hash(i + vec2(1.0, 1.0));
       vec2 u = f * f * (3.0 - 2.0 * f);
-      return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+      return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+                 mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
     }
-    
+    float fbm(vec2 x) {
+      float v = 0.0;
+      float a = 0.5;
+      vec2 shift = vec2(100.0);
+      mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+      for (int i = 0; i < 4; ++i) {
+        v += a * noise(x);
+        x = rot * x * 2.0 + shift;
+        a *= 0.5;
+      }
+      return v;
+    }
+
+    vec3 getThermoColor(float t) {
+      // Deep space reds on outer, vibrant oranges in mid, hot intense white near event horizon
+      t = clamp(t, 0.0, 1.0);
+      vec3 col = vec3(0.0);
+      if (t < 0.3) {
+        col = mix(vec3(0.0), vec3(0.5, 0.0, 0.0), t / 0.3); // Fade from black to dark red
+      } else if (t < 0.7) {
+        col = mix(vec3(0.5, 0.0, 0.0), vec3(1.0, 0.4, 0.0), (t - 0.3) / 0.4);
+      } else {
+        col = mix(vec3(1.0, 0.4, 0.0), vec3(1.0, 0.9, 0.8), (t - 0.7) / 0.3);
+      }
+      return col;
+    }
+
     void main() {
-      vec2 uv = (vUv - 0.5) * 2.0;
-      uv.x *= uResolution.x / uResolution.y;
+      // Robust UV coordinates, immune to clipping and scaling glitches
+      vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / min(uResolution.y, uResolution.x);
       
-      float dist = length(uv);
+      uv *= 3.0; // Scale the view
+      float r = length(uv);
       
-      // Dynamic parameters based on metrics
-      float intensity = smoothstep(0.0, 100.0, uCogLoad);
-      float speed = uTime * (0.5 + intensity * 2.5);
+      // Dynamic metrics
+      float loadNormalized = clamp(uCogLoad / 100.0, 0.0, 1.0);
+      float speed = uTime * (0.2 + loadNormalized * 0.8);
+      float angle = atan(uv.y, uv.x);
       
-      // Jitter if offline
-      vec2 jitter = vec2(0.0);
+      // EVENT HORIZON
+      float EH = 0.5;
+      float eventHorizon = smoothstep(EH, EH + 0.02, r);
+      
+      // FRONT DISK
+      vec2 frontUv = vec2(uv.x, uv.y * 8.0);
+      float frontR = length(frontUv);
+      
+      // GRAVITATIONAL LENSING (BACK DISK)
+      // Gravity pulls the UVs inward based on inverse square law
+      float gravity = 0.8 / (r * r + 0.05);
+      vec2 lensedUv = uv * (1.0 - gravity * 0.5);
+      
+      vec2 backUv = vec2(lensedUv.x, lensedUv.y * 4.0);
+      float backR = length(backUv);
+      
+      // MASKS
+      float frontMask = smoothstep(3.5, 1.2, frontR) * smoothstep(0.8, 1.2, frontR);
+      float backMask = smoothstep(3.5, 1.2, backR) * smoothstep(0.8, 1.2, backR);
+      
+      // Hide the back disk where the front disk crosses over
+      backMask *= smoothstep(0.1, 0.4, abs(uv.y));
+      
+      // TURBULENCE & ROTATION
+      vec2 polarFront = vec2(frontR * 3.0 - speed, angle * 4.0 + speed * 1.5);
+      float turbFront = fbm(polarFront * (1.0 + loadNormalized));
+      
+      vec2 polarBack = vec2(backR * 3.0 - speed, angle * 4.0 + speed * 1.5);
+      float turbBack = fbm(polarBack * (1.0 + loadNormalized));
+      
+      // TEMPERATURE (Brightness and Color Mapping)
+      float tempFront = smoothstep(3.5, 1.0, frontR) * frontMask;
+      float tempBack = smoothstep(3.5, 1.0, backR) * backMask;
+      
+      tempFront = clamp(tempFront * (0.7 + 0.6 * turbFront) + loadNormalized * 0.2, 0.0, 1.0);
+      tempBack = clamp(tempBack * (0.7 + 0.6 * turbBack) + loadNormalized * 0.2, 0.0, 1.0);
+      
+      // COMPOSE
+      vec3 backCol = getThermoColor(tempBack) * backMask;
+      backCol *= eventHorizon; // The Black Hole physically occludes the back disk
+      
+      vec3 frontCol = getThermoColor(tempFront) * frontMask;
+      // Front disk is NOT occluded because it is in front of the black hole
+      
+      vec3 finalCol = backCol + frontCol;
+      
+      // GLOBAL GLOW
+      float globalGlow = smoothstep(2.0, 0.5, r) * 0.15;
+      finalCol += getThermoColor(globalGlow * (0.5 + loadNormalized * 0.5));
+      
+      // SYS.ONLINE JITTER
       if (uOnline < 0.5) {
-        jitter = vec2(noise(vec2(uTime * 10.0)), noise(vec2(uTime * 12.0))) * 0.02;
-        uv += jitter;
+         finalCol *= (0.8 + 0.2 * noise(vec2(uTime * 20.0)));
       }
       
-      // Event horizon
-      float eventHorizon = smoothstep(0.25, 0.26, dist);
-      
-      // Accretion disk
-      float angle = atan(uv.y, uv.x);
-      float diskNoise = noise(vec2(dist * 12.0 - speed, angle * 4.0 + speed * 1.5));
-      
-      float diskCore = smoothstep(0.25, 0.45, dist) * smoothstep(0.7, 0.45, dist);
-      float diskGlow = diskCore * diskNoise * (1.0 + intensity * 2.0);
-      
-      // Cold blue-white color gradient
-      vec3 col = vec3(0.7, 0.85, 1.0) * diskGlow;
-      col *= eventHorizon;
-      
-      gl_FragColor = vec4(col, diskGlow * eventHorizon);
+      float alpha = clamp(dot(finalCol, vec3(0.5)), 0.0, 1.0);
+      gl_FragColor = vec4(finalCol, alpha);
     }
   `
 };
@@ -92,13 +149,17 @@ function BlackholeMesh() {
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-      materialRef.current.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+      // Use actual drawing buffer dimensions to fix clipping and dpi scaling
+      materialRef.current.uniforms.uResolution.value.set(
+        state.gl.domElement.width, 
+        state.gl.domElement.height
+      );
     }
   });
 
   return (
     <mesh ref={meshRef}>
-      <planeGeometry args={[20, 20]} />
+      <planeGeometry args={[100, 100]} />
       <shaderMaterial 
         ref={materialRef}
         args={[BlackholeShaderMaterial]}
