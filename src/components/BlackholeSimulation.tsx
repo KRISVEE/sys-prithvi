@@ -127,7 +127,7 @@ function GravityParticles() {
   const [cogLoad, setCogLoad] = useState(85);
   useEffect(() => {
     const unsub = subscribeSystemState((state) => setCogLoad(state.cognitiveLoad));
-    return () => unsub();
+    return () => { unsub(); };
   }, []);
 
   useFrame((state, delta) => {
