@@ -41,3 +41,11 @@ export interface Trajectory {
   order_index: number;
   created_at: string;
 }
+
+export interface ArsenalItem {
+  id: string; // UUID
+  category: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+}

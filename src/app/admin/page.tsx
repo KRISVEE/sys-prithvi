@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Frequency, Trajectory, VaultItem, NodeItem } from "@/types/database";
+import { Frequency, Trajectory, VaultItem, NodeItem, ArsenalItem } from "@/types/database";
 import RichTextEditor from "@/components/RichTextEditor";
 
 function FrequenciesManager() {
@@ -493,8 +493,127 @@ function NodesManager() {
   );
 }
 
+function ArsenalManager() {
+  const [items, setItems] = useState<ArsenalItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Form State
+  const [category, setCategory] = useState("FRAMEWORKS");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    const { data } = await supabase.from("arsenal").select("*").order("created_at", { ascending: false });
+    if (data) setItems(data as ArsenalItem[]);
+    setLoading(false);
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from("arsenal").insert({
+      category,
+      name,
+      description
+    });
+    if (!error) {
+      setCategory("FRAMEWORKS");
+      setName("");
+      setDescription("");
+      fetchItems();
+    } else {
+      alert("Error creating arsenal item. Check RLS policies: " + error.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this arsenal item?")) return;
+    
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    
+    const { error } = await supabase.from("arsenal").delete().eq("id", id);
+    if (error) {
+      alert("Failed to delete. Check RLS policies: " + error.message);
+      fetchItems();
+    }
+  };
+
+  // Group items by category for UI
+  const groupedItems = items.reduce((acc, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {} as Record<string, ArsenalItem[]>);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div>
+        <h2 className="text-xl font-bold mb-6 tracking-tighter">NEW WEAPON</h2>
+        <form onSubmit={handleCreate} className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="CATEGORY (e.g. FRAMEWORKS, HARDWARE)"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full uppercase"
+            required
+          />
+          <input
+            type="text"
+            placeholder="NAME (e.g. Next.js, Supabase)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full"
+            required
+          />
+          <textarea
+            placeholder="DESCRIPTION (Optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full h-24 resize-none"
+          />
+          <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
+            ADD TO ARSENAL
+          </button>
+        </form>
+      </div>
+      <div>
+        <h2 className="text-xl font-bold mb-6 tracking-tighter">CURRENT LOADOUT</h2>
+        {loading ? <p className="font-mono text-sm text-gray-500">LOADING...</p> : (
+          <div className="flex flex-col gap-8">
+            {Object.keys(groupedItems).length === 0 && (
+              <p className="font-mono text-xs text-gray-600">ARSENAL EMPTY.</p>
+            )}
+            {Object.entries(groupedItems).map(([cat, catItems]) => (
+              <div key={cat}>
+                <h3 className="text-xs font-mono text-gray-500 mb-4 border-b border-gray-800 pb-2">{cat}</h3>
+                <div className="flex flex-col gap-2">
+                  {catItems.map((item) => (
+                    <div key={item.id} className="flex justify-between items-start group">
+                      <div>
+                        <div className="font-bold text-sm">{item.name}</div>
+                        {item.description && <div className="text-xs text-gray-500 font-mono mt-1">{item.description}</div>}
+                      </div>
+                      <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                        [ DELETE ]
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"NODES" | "FREQUENCIES" | "TRAJECTORY" | "VAULT">("NODES");
+  const [activeTab, setActiveTab] = useState<"ARSENAL" | "NODES" | "FREQUENCIES" | "TRAJECTORY" | "VAULT">("ARSENAL");
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -510,7 +629,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex gap-8 mb-12 border-b border-gray-800 overflow-x-auto whitespace-nowrap">
-        {["NODES", "FREQUENCIES", "TRAJECTORY", "VAULT"].map((tab) => (
+        {["ARSENAL", "NODES", "FREQUENCIES", "TRAJECTORY", "VAULT"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -524,6 +643,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="min-h-[50vh]">
+        {activeTab === "ARSENAL" && <ArsenalManager />}
         {activeTab === "NODES" && <NodesManager />}
         {activeTab === "FREQUENCIES" && <FrequenciesManager />}
         {activeTab === "TRAJECTORY" && <TrajectoryManager />}
