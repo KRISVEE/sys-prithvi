@@ -1,48 +1,15 @@
 import { supabase } from "@/lib/supabase";
-import { ActiveNode } from "@/types/database";
+import { NodeItem } from "@/types/database";
 
-// Pre-populated default state
-const defaultNodes: ActiveNode[] = [
-  {
-    id: "1",
-    title: "Atman",
-    status: "ACTIVE",
-    tech_stack: ["Python", "Reinforcement Learning"],
-    description: "Cognitive AI / modeling human thought.",
-    url: null,
-  },
-  {
-    id: "2",
-    title: "Xampire Labs",
-    status: "SCALING",
-    tech_stack: ["Next.js", "C#", "Three.js"],
-    description: "Deep-tech sports simulation infrastructure.",
-    url: null,
-  },
-  {
-    id: "3",
-    title: "Project BU",
-    status: "BUILDING",
-    tech_stack: ["System Architecture"],
-    description: "Core infrastructure building.",
-    url: null,
-  },
-  {
-    id: "4",
-    title: "Neptune: Apophenia",
-    status: "IN DEVELOPMENT",
-    tech_stack: ["Unity", "C#"],
-    description: "Atmospheric psychological horror, pattern-recognition mechanics.",
-    url: null,
-  },
-];
+export const dynamic = 'force-dynamic';
 
 export default async function NodesPage() {
   const { data: activeNodes, error } = await supabase
-    .from("active_nodes")
-    .select("*");
+    .from("nodes")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  const nodesToRender = (activeNodes && activeNodes.length > 0) ? (activeNodes as ActiveNode[]) : defaultNodes;
+  const nodesToRender = (activeNodes as NodeItem[]) || [];
 
   return (
     <div className="w-full pt-32 pb-16">
@@ -51,6 +18,9 @@ export default async function NodesPage() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+        {nodesToRender.length === 0 && (
+          <div className="text-gray-500 font-mono text-sm col-span-2">No active nodes executing.</div>
+        )}
         {nodesToRender.map((node) => (
           <div key={node.id} className="terminal-border p-6 hover:border-gray-600 transition-colors">
             <div className="flex justify-between items-start mb-4">
@@ -59,13 +29,13 @@ export default async function NodesPage() {
                 {node.status}
               </span>
             </div>
-            <p className="text-gray-400 mb-6 text-sm">
+            <p className="text-gray-400 mb-6 text-sm whitespace-pre-wrap">
               {node.description}
             </p>
             <div className="flex flex-wrap gap-2">
-              {node.tech_stack.map((tech) => (
+              {node.tags.map((tech) => (
                 <span key={tech} className="text-xs font-mono text-gray-500">
-                  [{tech}]
+                  [{tech.trim()}]
                 </span>
               ))}
             </div>

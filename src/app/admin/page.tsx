@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Frequency, Trajectory, VaultItem } from "@/types/database";
+import { Frequency, Trajectory, VaultItem, NodeItem } from "@/types/database";
 import RichTextEditor from "@/components/RichTextEditor";
 
 function FrequenciesManager() {
@@ -372,8 +372,129 @@ function VaultManager() {
   );
 }
 
+function NodesManager() {
+  const [items, setItems] = useState<NodeItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Form State
+  const [title, setTitle] = useState("");
+  const [status, setStatus] = useState("EXECUTING");
+  const [description, setDescription] = useState("");
+  const [tags, setTags] = useState("");
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    const { data } = await supabase.from("nodes").select("*").order("created_at", { ascending: false });
+    if (data) setItems(data as NodeItem[]);
+    setLoading(false);
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const tagArray = tags.split(",").map(t => t.trim()).filter(t => t.length > 0);
+    const { error } = await supabase.from("nodes").insert({
+      title,
+      status,
+      description,
+      tags: tagArray
+    });
+    if (!error) {
+      setTitle("");
+      setStatus("EXECUTING");
+      setDescription("");
+      setTags("");
+      fetchItems();
+    } else {
+      alert("Error creating node. Check RLS policies: " + error.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this node?")) return;
+    
+    // Optimistic UI update
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    
+    const { error } = await supabase.from("nodes").delete().eq("id", id);
+    if (error) {
+      alert("Failed to delete. Check RLS policies: " + error.message);
+      fetchItems(); // Revert on failure
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div>
+        <h2 className="text-xl font-bold mb-6 tracking-tighter">NEW NODE</h2>
+        <form onSubmit={handleCreate} className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="TITLE (e.g. Atman)"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full"
+            required
+          />
+          <input
+            type="text"
+            placeholder="STATUS (e.g. EXECUTING, IN R&D)"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full"
+            required
+          />
+          <textarea
+            placeholder="DESCRIPTION"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full h-24 resize-none"
+            required
+          />
+          <input
+            type="text"
+            placeholder="TAGS (comma separated)"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full"
+            required
+          />
+          <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
+            INITIALIZE NODE
+          </button>
+        </form>
+      </div>
+      <div>
+        <h2 className="text-xl font-bold mb-6 tracking-tighter">ACTIVE NODES</h2>
+        {loading ? <p className="font-mono text-sm text-gray-500">LOADING...</p> : (
+          <div className="flex flex-col gap-4">
+            {items.length === 0 && (
+              <p className="font-mono text-xs text-gray-600">NO NODES FOUND.</p>
+            )}
+            {items.map(item => (
+              <div key={item.id} className="border border-gray-800 p-4 flex flex-col gap-4 group hover:border-gray-500 transition-colors">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="text-xs font-mono text-gray-500 mb-1">STATUS: {item.status}</div>
+                    <div className="font-bold">{item.title}</div>
+                  </div>
+                  <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                    [ DELETE ]
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"FREQUENCIES" | "TRAJECTORY" | "VAULT">("FREQUENCIES");
+  const [activeTab, setActiveTab] = useState<"NODES" | "FREQUENCIES" | "TRAJECTORY" | "VAULT">("NODES");
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -389,7 +510,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex gap-8 mb-12 border-b border-gray-800 overflow-x-auto whitespace-nowrap">
-        {["FREQUENCIES", "TRAJECTORY", "VAULT"].map((tab) => (
+        {["NODES", "FREQUENCIES", "TRAJECTORY", "VAULT"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -403,6 +524,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="min-h-[50vh]">
+        {activeTab === "NODES" && <NodesManager />}
         {activeTab === "FREQUENCIES" && <FrequenciesManager />}
         {activeTab === "TRAJECTORY" && <TrajectoryManager />}
         {activeTab === "VAULT" && <VaultManager />}

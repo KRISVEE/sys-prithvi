@@ -23,13 +23,13 @@ export interface Frequency {
   created_at: string;
 }
 
-export interface ActiveNode {
+export interface NodeItem {
   id: string; // UUID
   title: string;
   status: string;
-  tech_stack: string[];
+  tags: string[];
   description: string | null;
-  url: string | null;
+  created_at: string;
 }
 
 export interface Trajectory {
