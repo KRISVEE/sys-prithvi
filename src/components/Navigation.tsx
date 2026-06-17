@@ -16,7 +16,7 @@ export default function Navigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="w-full relative z-30 mb-8 md:mb-0 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mix-blend-difference pointer-events-auto">
+    <nav className="w-full p-4 md:p-8 relative md:absolute md:top-0 md:left-0 z-50 flex flex-col md:flex-row justify-between items-start md:items-center mix-blend-difference pointer-events-auto gap-4 sm:gap-0">
       <div className="font-mono text-sm tracking-widest font-bold">
         SYS.PRITHVI
       </div>

@@ -87,9 +87,9 @@ export default function Hub() {
   };
 
   return (
-    <div
+    <main
       onMouseMove={handleMouseMove}
-      className={`flex flex-col min-h-[100dvh] p-4 md:p-8 overflow-hidden transition-colors duration-200 ${
+      className={`relative w-full h-[100dvh] overflow-x-hidden md:overflow-hidden bg-black text-white flex flex-col transition-colors duration-200 ${
         glitch ? "bg-red-950 text-shadow-glitch" : ""
       }`}
     >
@@ -102,7 +102,7 @@ export default function Hub() {
           rotateY: isMobile ? 0 : rotateY,
           transformPerspective: 1000
         }}
-        className="flex-grow flex flex-col items-center justify-center text-center w-full z-10 py-8 md:py-0 mx-auto"
+        className="flex-grow flex flex-col justify-center items-center w-full relative md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-10 text-center mt-12 md:mt-0"
       >
         <h1
           className={`text-6xl md:text-8xl font-bold tracking-tighter ${
@@ -114,10 +114,15 @@ export default function Hub() {
         <p className="mt-6 text-gray-400 font-mono text-sm max-w-lg leading-relaxed uppercase tracking-widest">
           Definition is a cage, my nature is just a bit too contradictory _-_
         </p>
-        <Comms />
       </motion.div>
+
+      <div className="p-4 md:p-0 relative md:absolute md:bottom-8 md:left-8 z-50 w-full md:w-auto">
+        <Comms />
+      </div>
       <BlackholeSimulation />
-      <LiveTelemetry />
-    </div>
+      <div className="p-4 md:p-0 relative md:absolute md:bottom-8 md:right-8 z-50 w-full md:w-auto text-left md:text-right mt-auto md:mt-0">
+        <LiveTelemetry />
+      </div>
+    </main>
   );
 }

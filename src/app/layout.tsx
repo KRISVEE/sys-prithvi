@@ -33,9 +33,9 @@ export default function RootLayout({
           <CanvasBackground />
         </div>
         <Navigation />
-        <main className="relative z-10 p-6 md:p-12 lg:p-24 min-h-screen flex flex-col max-w-7xl mx-auto">
+        <div className="relative z-10">
           {children}
-        </main>
+        </div>
       </body>
     </html>
   );
