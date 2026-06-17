@@ -212,6 +212,40 @@ function TrajectoryManager() {
   );
 }
 
+function VaultItemCard({ item, onDelete, onMint }: { item: VaultItem, onDelete: (id: string) => void, onMint: (id: string) => Promise<string | null> }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleMint = async () => {
+    const url = await onMint(item.id);
+    if (url) {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="border border-gray-800 p-4 flex flex-col gap-4 group hover:border-gray-500 transition-colors">
+      <div className="flex justify-between items-start">
+        <div>
+          <div className="text-xs font-mono text-gray-500 mb-1">TARGET: {item.target_company}</div>
+          <div className="font-bold">{item.public_title}</div>
+          <div className="text-[10px] font-mono text-gray-600 mt-2">{new Date(item.created_at).toLocaleDateString()}</div>
+        </div>
+        <button onClick={() => onDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+          [ DELETE ]
+        </button>
+      </div>
+      <button
+        onClick={handleMint}
+        className="text-left text-xs font-mono text-green-500 hover:text-green-400 transition-colors w-fit"
+      >
+        {copied ? "[ LINK COPIED ]" : "[ MINT SECURE LINK ]"}
+      </button>
+    </div>
+  );
+}
+
 function VaultManager() {
   const [items, setItems] = useState<VaultItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -227,8 +261,8 @@ function VaultManager() {
   }, []);
 
   const fetchItems = async () => {
-    const { data } = await supabase.from("the_vault").select("*").order("created_at", { ascending: false });
-    if (data) setItems(data);
+    const { data } = await supabase.from("the_vault").select("id, target_company, public_title, created_at").order("created_at", { ascending: false });
+    if (data) setItems(data as VaultItem[]);
     setLoading(false);
   };
 
@@ -247,14 +281,21 @@ function VaultManager() {
       setMarkdown("");
       fetchItems();
     } else {
-      alert(error.message);
+      alert("Error creating payload. Check RLS policies: " + error.message);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this secure vault item?")) return;
-    await supabase.from("the_vault").delete().eq("id", id);
-    fetchItems();
+    
+    // Optimistic UI update
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    
+    const { error } = await supabase.from("the_vault").delete().eq("id", id);
+    if (error) {
+      alert("Failed to delete. Check RLS policies: " + error.message);
+      fetchItems(); // Revert on failure
+    }
   };
 
   const mintKey = async (vaultId: string) => {
@@ -266,10 +307,9 @@ function VaultManager() {
     });
     if (error) {
       alert("Error minting key: " + error.message);
-    } else {
-      const url = `${window.location.origin}/vault/${vaultId}?token=${token}`;
-      prompt("KEY MINTED! SECURE URL:", url);
+      return null;
     }
+    return `${window.location.origin}/vault/${vaultId}?token=${token}`;
   };
 
   return (
@@ -316,24 +356,11 @@ function VaultManager() {
         <h2 className="text-xl font-bold mb-6 tracking-tighter">THE VAULT</h2>
         {loading ? <p className="font-mono text-sm text-gray-500">LOADING...</p> : (
           <div className="flex flex-col gap-4">
+            {items.length === 0 && (
+              <p className="font-mono text-xs text-gray-600">NO SECURE ITEMS FOUND.</p>
+            )}
             {items.map(item => (
-              <div key={item.id} className="border border-gray-800 p-4 flex flex-col gap-4 group hover:border-gray-500 transition-colors">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="text-xs font-mono text-gray-500 mb-1">TARGET: {item.target_company}</div>
-                    <div className="font-bold">{item.public_title}</div>
-                  </div>
-                  <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                    [ DEL ]
-                  </button>
-                </div>
-                <button
-                  onClick={() => mintKey(item.id)}
-                  className="bg-white text-black font-mono text-xs py-2 w-full uppercase tracking-widest hover:bg-gray-300 transition-colors"
-                >
-                  MINT ACCESS KEY
-                </button>
-              </div>
+              <VaultItemCard key={item.id} item={item} onDelete={handleDelete} onMint={mintKey} />
             ))}
           </div>
         )}
