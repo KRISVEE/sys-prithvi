@@ -45,7 +45,7 @@ function FrequenciesManager() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
       <div>
         <h2 className="text-xl font-bold mb-6 tracking-tighter">NEW FREQUENCY</h2>
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
@@ -142,7 +142,7 @@ function TrajectoryManager() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
       <div>
         <h2 className="text-xl font-bold mb-6 tracking-tighter">NEW VECTOR</h2>
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
@@ -317,7 +317,7 @@ function VaultManager() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
       <div>
         <h2 className="text-xl font-bold mb-6 tracking-tighter">NEW SECURE PAYLOAD</h2>
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
@@ -426,7 +426,7 @@ function NodesManager() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
       <div>
         <h2 className="text-xl font-bold mb-6 tracking-tighter">NEW NODE</h2>
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
@@ -549,7 +549,7 @@ function ArsenalManager() {
   }, {} as Record<string, ArsenalItem[]>);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
       <div>
         <h2 className="text-xl font-bold mb-6 tracking-tighter">NEW WEAPON</h2>
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
@@ -628,7 +628,7 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      <div className="flex gap-8 mb-12 border-b border-gray-800 overflow-x-auto whitespace-nowrap">
+      <div className="flex gap-8 mb-12 border-b border-gray-800 overflow-x-auto whitespace-nowrap hide-scrollbar">
         {["ARSENAL", "NODES", "FREQUENCIES", "TRAJECTORY", "VAULT"].map((tab) => (
           <button
             key={tab}

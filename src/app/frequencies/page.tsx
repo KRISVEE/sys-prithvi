@@ -12,7 +12,7 @@ export default async function FrequenciesPage() {
   const freqs = (frequencies as Frequency[]) || [];
 
   return (
-    <div className="w-full pt-32 pb-16">
+    <div className="w-full pt-32 pb-16 px-4 sm:px-8 lg:px-12">
       <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-16">
         FREQUENCIES
       </h1>

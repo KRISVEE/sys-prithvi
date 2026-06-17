@@ -19,12 +19,12 @@ export default async function NodesPage() {
   }, {} as Record<string, ArsenalItem[]>);
 
   return (
-    <div className="w-full pt-32 pb-16">
+    <div className="w-full pt-32 pb-16 px-4 sm:px-8 lg:px-12">
       <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-16">
         ACTIVE_NODES
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-24">
         {nodesToRender.length === 0 && (
           <div className="text-gray-500 font-mono text-sm col-span-2">No active nodes executing.</div>
         )}
