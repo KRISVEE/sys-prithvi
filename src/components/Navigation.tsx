@@ -16,11 +16,11 @@ export default function Navigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 p-6 flex justify-between items-center mix-blend-difference pointer-events-auto">
+    <nav className="fixed top-0 left-0 w-full z-50 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mix-blend-difference pointer-events-auto">
       <div className="font-mono text-sm tracking-widest font-bold">
         SYS.PRITHVI
       </div>
-      <div className="flex gap-6 text-xs font-mono tracking-widest">
+      <div className="flex gap-6 text-xs font-mono tracking-widest overflow-x-auto max-w-full hide-scrollbar pb-2 sm:pb-0">
         {navLinks.map((link) => (
           <Link
             key={link.path}
