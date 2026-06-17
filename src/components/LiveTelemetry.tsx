@@ -68,7 +68,7 @@ export default function LiveTelemetry() {
   if (!mounted) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 sm:bottom-8 sm:left-auto sm:right-8 p-4 sm:p-0 bg-black/80 sm:bg-transparent z-50 pointer-events-none font-mono text-[10px] sm:text-xs tracking-widest text-gray-500 uppercase flex flex-col items-start sm:items-end gap-1 text-left sm:text-right">
+    <div className="w-full md:w-auto relative md:fixed md:bottom-8 md:right-8 mt-8 mb-4 md:mb-0 md:mt-0 z-20 text-left md:text-right pointer-events-none font-mono text-[10px] sm:text-xs tracking-widest text-gray-500 uppercase flex flex-col items-start md:items-end gap-1">
       <div className="flex gap-4 w-64 justify-between">
         <span>SYS.STATE:</span>
         <span className="text-gray-300">NOMINALLY DECENTRALIZED</span>
@@ -85,7 +85,7 @@ export default function LiveTelemetry() {
         <span>SESSION UPTIME:</span>
         <span className="text-gray-300">{uptime.toFixed(1)}s</span>
       </div>
-      <div className="flex gap-2 w-64 justify-start sm:justify-end items-center mt-1">
+      <div className="flex gap-2 w-64 justify-start md:justify-end items-center mt-1">
         <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
         <span className="text-green-500 font-bold tracking-widest">SYS.ONLINE</span>
       </div>

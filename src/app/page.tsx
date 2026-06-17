@@ -62,7 +62,7 @@ export default function Hub() {
 
   return (
     <div
-      className={`min-h-[80vh] flex flex-col justify-center transition-colors duration-200 ${
+      className={`flex flex-col min-h-[100dvh] relative overflow-x-hidden p-4 md:p-8 transition-colors duration-200 ${
         glitch ? "bg-red-950 text-shadow-glitch" : ""
       }`}
     >
@@ -70,6 +70,7 @@ export default function Hub() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: "easeOut" }}
+        className="flex-grow flex flex-col justify-center items-start md:items-center mt-12 md:mt-0 md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:max-w-3xl z-0"
       >
         <h1
           className={`text-6xl md:text-8xl font-bold tracking-tighter ${
