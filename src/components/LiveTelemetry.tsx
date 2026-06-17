@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { setSystemState, subscribeSystemState } from "@/lib/store";
 
 export default function LiveTelemetry() {
   const [mounted, setMounted] = useState(false);
@@ -41,10 +43,29 @@ export default function LiveTelemetry() {
     update();
     const interval = setInterval(update, 75);
     
-    // Cognitive Load Fluctuation
-    const cogInterval = setInterval(() => {
-      setCogLoad(Math.floor(Math.random() * (94 - 82 + 1) + 82));
-    }, 2000);
+    const unsubStore = subscribeSystemState((state) => {
+      setCogLoad(state.cognitiveLoad);
+    });
+
+    const fetchInitial = async () => {
+      const { data, error } = await supabase.from('system_status').select('*').limit(1).maybeSingle();
+      if (data && !error) {
+        setSystemState({ cognitiveLoad: data.cognitive_load, sysOnline: data.sys_online });
+      }
+    };
+    fetchInitial();
+
+    const channel = supabase
+      .channel('system_status_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_status' }, (payload: any) => {
+        if (payload.new) {
+          setSystemState({ 
+            cognitiveLoad: payload.new.cognitive_load, 
+            sysOnline: payload.new.sys_online 
+          });
+        }
+      })
+      .subscribe();
     
     // Save to localStorage every second
     const saveInterval = setInterval(() => {
@@ -55,8 +76,9 @@ export default function LiveTelemetry() {
     
     return () => {
       clearInterval(interval);
-      clearInterval(cogInterval);
       clearInterval(saveInterval);
+      unsubStore();
+      supabase.removeChannel(channel);
       
       // Save exact amount on unmount
       const now = Date.now();
