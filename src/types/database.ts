@@ -31,3 +31,13 @@ export interface ActiveNode {
   description: string | null;
   url: string | null;
 }
+
+export interface Trajectory {
+  id: string; // UUID
+  vector_id: string;
+  metric: string;
+  title: string;
+  description: string;
+  order_index: number;
+  created_at: string;
+}
