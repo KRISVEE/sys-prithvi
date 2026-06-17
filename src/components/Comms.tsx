@@ -5,6 +5,9 @@ import Link from "next/link";
 const links = [
   { label: "GITHUB", href: "#" },
   { label: "X / TWITTER", href: "#" },
+  { label: "LINKEDIN", href: "#" },
+  { label: "MEDIUM", href: "#" },
+  { label: "INSTAGRAM", href: "#" },
   { label: "SECURE COMMS", href: "mailto:#" },
 ];
 
