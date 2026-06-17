@@ -3,12 +3,12 @@
 import Link from "next/link";
 
 const links = [
-  { label: "GITHUB", href: "#" },
-  { label: "X / TWITTER", href: "#" },
-  { label: "LINKEDIN", href: "#" },
-  { label: "MEDIUM", href: "#" },
-  { label: "INSTAGRAM", href: "#" },
-  { label: "SECURE COMMS", href: "mailto:#" },
+  { label: "GITHUB", href: "https://github.com/KRISVEE/" },
+  { label: "X / TWITTER", href: "https://x.com/koronovoid" },
+  { label: "LINKEDIN", href: "https://www.linkedin.com/in/prithvi-raj07/" },
+  { label: "MEDIUM", href: "https://medium.com/@Void.Prithvi" },
+  { label: "INSTAGRAM", href: "https://www.instagram.com/prithvi.dll/" },
+  { label: "SECURE COMMS", href: "mailto:yoitspandamon@zohomail.in" },
 ];
 
 export default function Comms() {
