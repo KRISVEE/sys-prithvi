@@ -19,8 +19,8 @@ export default async function VaultPage() {
   const items = (vaultItems as Partial<VaultItem>[]) || [];
 
   return (
-    <div className="w-full pt-32 pb-16">
-      <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-16 flex items-center gap-4">
+    <div className="min-h-screen w-full flex flex-col pt-24 pb-12 px-4 md:px-8 bg-transparent">
+      <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-12 flex items-center gap-4">
         THE_VAULT <Lock className="w-8 h-8 md:w-12 md:h-12 text-gray-600" />
       </h1>
 

@@ -89,7 +89,7 @@ export default function Hub() {
   return (
     <main
       onMouseMove={handleMouseMove}
-      className={`relative w-full h-[100dvh] overflow-x-hidden md:overflow-hidden bg-black text-white flex flex-col transition-colors duration-200 ${
+      className={`relative w-full h-[100dvh] overflow-x-hidden md:overflow-hidden bg-transparent text-white flex flex-col transition-colors duration-200 ${
         glitch ? "bg-red-950 text-shadow-glitch" : ""
       }`}
     >

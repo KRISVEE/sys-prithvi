@@ -27,9 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased relative min-h-screen bg-[#050505] text-white`}
+        className={`${inter.variable} ${jetbrainsMono.variable} antialiased relative min-h-screen bg-black text-white`}
       >
-        <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="fixed top-0 left-0 w-full h-full z-[-1] pointer-events-auto">
           <CanvasBackground />
         </div>
         <Navigation />

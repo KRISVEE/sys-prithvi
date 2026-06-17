@@ -620,7 +620,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="w-full pt-16 pb-32">
+    <div className="min-h-screen w-full flex flex-col pt-24 pb-12 px-4 md:px-8 bg-transparent">
       <div className="flex justify-between items-end mb-12 border-b border-gray-800 pb-4">
         <h1 className="text-4xl font-bold tracking-tighter">SYS.ADMIN</h1>
         <button onClick={handleLogout} className="text-xs font-mono text-gray-500 hover:text-white transition-colors">

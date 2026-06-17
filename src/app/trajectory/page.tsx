@@ -25,12 +25,12 @@ export default function TrajectoryPage() {
   }, []);
 
   return (
-    <div className="w-full pt-32 pb-32 px-4 sm:px-8 lg:px-12">
+    <div className="min-h-screen w-full flex flex-col pt-24 pb-12 px-4 md:px-8 bg-transparent">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="text-4xl md:text-6xl font-bold tracking-tighter mb-24"
+        className="text-4xl md:text-6xl font-bold tracking-tighter mb-12"
       >
         TRAJECTORY_MATRIX
       </motion.h1>
