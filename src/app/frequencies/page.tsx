@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import { Frequency } from "@/types/database";
-import ReactMarkdown from "react-markdown";
 
 export const dynamic = 'force-dynamic';
 
@@ -46,9 +45,10 @@ export default async function FrequenciesPage() {
               <h2 className="text-2xl font-bold tracking-tight mb-4">{freq.title}</h2>
             )}
             
-            <div className="prose prose-invert prose-p:text-gray-400 prose-headings:text-white max-w-none font-mono text-sm">
-              <ReactMarkdown>{freq.content_markdown}</ReactMarkdown>
-            </div>
+            <div 
+              className="prose prose-invert prose-p:text-gray-400 prose-headings:text-white prose-img:rounded-lg prose-img:border prose-img:border-gray-800 prose-img:w-full max-w-none font-mono text-sm"
+              dangerouslySetInnerHTML={{ __html: freq.content_markdown }}
+            />
           </div>
         ))}
       </div>

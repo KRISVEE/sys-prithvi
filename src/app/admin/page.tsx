@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Frequency, Trajectory, VaultItem } from "@/types/database";
+import RichTextEditor from "@/components/RichTextEditor";
 
 function FrequenciesManager() {
   const [items, setItems] = useState<Frequency[]>([]);
@@ -64,12 +65,10 @@ function FrequenciesManager() {
             <option value="Code Snippet">Code Snippet</option>
             <option value="Math Logic">Math Logic</option>
           </select>
-          <textarea
-            placeholder="MARKDOWN CONTENT"
+          <RichTextEditor
+            placeholder="RICH TEXT CONTENT"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full h-64 resize-none"
-            required
+            onChange={setContent}
           />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
             DEPLOY FREQUENCY
@@ -340,12 +339,10 @@ function VaultManager() {
             className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full h-24 resize-none"
             required
           />
-          <textarea
-            placeholder="PRIVATE MARKDOWN (Encrypted Payload)"
+          <RichTextEditor
+            placeholder="PRIVATE PAYLOAD (Rich Text / HTML)"
             value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
-            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full h-48 resize-none"
-            required
+            onChange={setMarkdown}
           />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
             SECURE PAYLOAD
