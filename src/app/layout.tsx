@@ -3,8 +3,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import CanvasBackground from "@/components/CanvasBackground";
 import Navigation from "@/components/Navigation";
-import LiveTelemetry from "@/components/LiveTelemetry";
-import Comms from "@/components/Comms";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,8 +33,6 @@ export default function RootLayout({
           <CanvasBackground />
         </div>
         <Navigation />
-        <LiveTelemetry />
-        <Comms />
         <main className="relative z-10 p-6 md:p-12 lg:p-24 min-h-screen flex flex-col max-w-7xl mx-auto">
           {children}
         </main>
