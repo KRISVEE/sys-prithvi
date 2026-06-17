@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { subscribeSystemState, getSystemState } from "@/lib/store";
@@ -9,11 +9,12 @@ const BlackholeShaderMaterial = {
   uniforms: {
     uTime: { value: 0 },
     uCogLoad: { value: 85 },
-    uOnline: { value: 1.0 },
-    uResolution: { value: new THREE.Vector2() }
+    uOnline: { value: 1.0 }
   },
   vertexShader: `
+    varying vec3 vPosition;
     void main() {
+      vPosition = position;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
@@ -21,7 +22,7 @@ const BlackholeShaderMaterial = {
     uniform float uTime;
     uniform float uCogLoad;
     uniform float uOnline;
-    uniform vec2 uResolution;
+    varying vec3 vPosition;
     
     // Minimalist noise function
     float hash(vec2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
@@ -45,25 +46,10 @@ const BlackholeShaderMaterial = {
       return v;
     }
 
-    vec3 getThermoColor(float t) {
-      // Deep space reds on outer, vibrant oranges in mid, hot intense white near event horizon
-      t = clamp(t, 0.0, 1.0);
-      vec3 col = vec3(0.0);
-      if (t < 0.3) {
-        col = mix(vec3(0.0), vec3(0.5, 0.0, 0.0), t / 0.3); // Fade from black to dark red
-      } else if (t < 0.7) {
-        col = mix(vec3(0.5, 0.0, 0.0), vec3(1.0, 0.4, 0.0), (t - 0.3) / 0.4);
-      } else {
-        col = mix(vec3(1.0, 0.4, 0.0), vec3(1.0, 0.9, 0.8), (t - 0.7) / 0.3);
-      }
-      return col;
-    }
-
     void main() {
-      // Robust UV coordinates, immune to clipping and scaling glitches
-      vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / min(uResolution.y, uResolution.x);
+      // Use world position to perfectly align with the particle system
+      vec2 uv = vPosition.xy * 0.4;
       
-      uv *= 3.0; // Scale the view
       float r = length(uv);
       
       // Dynamic metrics
@@ -71,66 +57,147 @@ const BlackholeShaderMaterial = {
       float speed = uTime * (0.2 + loadNormalized * 0.8);
       float angle = atan(uv.y, uv.x);
       
+      // GRAVITATIONAL LENSING (Continuous push outward)
+      float gravity = 0.08 / (r * r + 0.01);
+      vec2 warpedUv = uv * (1.0 + gravity);
+      
+      // The Accretion Disk is a flattened ellipse in the warped space
+      float diskR = length(vec2(warpedUv.x, warpedUv.y * 4.0));
+      
+      // Smooth continuous ring
+      float diskMask = smoothstep(2.5, 0.6, diskR) * smoothstep(0.3, 0.6, diskR);
+      
+      // Fade out at extreme poles slightly for a smoother look
+      diskMask *= smoothstep(0.0, 0.2, abs(warpedUv.x) + 0.2);
+      
+      // TURBULENCE
+      vec2 polar = vec2(diskR * 4.0 - speed, angle * 3.0 + speed * 1.5);
+      float turb = fbm(polar * (1.0 + loadNormalized));
+      diskMask *= (0.5 + 0.5 * turb);
+      
       // EVENT HORIZON
-      float EH = 0.5;
-      float eventHorizon = smoothstep(EH, EH + 0.02, r);
+      float EH = 0.35;
+      float eventHorizon = smoothstep(EH, EH + 0.01, r);
       
-      // FRONT DISK
-      vec2 frontUv = vec2(uv.x, uv.y * 8.0);
-      float frontR = length(frontUv);
+      // MONOCHROME PALETTE
+      vec3 col = vec3(1.0) * diskMask * eventHorizon;
       
-      // GRAVITATIONAL LENSING (BACK DISK)
-      // Gravity pulls the UVs inward based on inverse square law
-      float gravity = 0.8 / (r * r + 0.05);
-      vec2 lensedUv = uv * (1.0 - gravity * 0.5);
+      // Inner hot glow
+      float innerGlow = smoothstep(0.6, 0.35, r) * 0.5 * eventHorizon;
+      col += vec3(innerGlow);
       
-      vec2 backUv = vec2(lensedUv.x, lensedUv.y * 4.0);
-      float backR = length(backUv);
-      
-      // MASKS
-      float frontMask = smoothstep(3.5, 1.2, frontR) * smoothstep(0.8, 1.2, frontR);
-      float backMask = smoothstep(3.5, 1.2, backR) * smoothstep(0.8, 1.2, backR);
-      
-      // Hide the back disk where the front disk crosses over
-      backMask *= smoothstep(0.1, 0.4, abs(uv.y));
-      
-      // TURBULENCE & ROTATION
-      vec2 polarFront = vec2(frontR * 3.0 - speed, angle * 4.0 + speed * 1.5);
-      float turbFront = fbm(polarFront * (1.0 + loadNormalized));
-      
-      vec2 polarBack = vec2(backR * 3.0 - speed, angle * 4.0 + speed * 1.5);
-      float turbBack = fbm(polarBack * (1.0 + loadNormalized));
-      
-      // TEMPERATURE (Brightness and Color Mapping)
-      float tempFront = smoothstep(3.5, 1.0, frontR) * frontMask;
-      float tempBack = smoothstep(3.5, 1.0, backR) * backMask;
-      
-      tempFront = clamp(tempFront * (0.7 + 0.6 * turbFront) + loadNormalized * 0.2, 0.0, 1.0);
-      tempBack = clamp(tempBack * (0.7 + 0.6 * turbBack) + loadNormalized * 0.2, 0.0, 1.0);
-      
-      // COMPOSE
-      vec3 backCol = getThermoColor(tempBack) * backMask;
-      backCol *= eventHorizon; // The Black Hole physically occludes the back disk
-      
-      vec3 frontCol = getThermoColor(tempFront) * frontMask;
-      // Front disk is NOT occluded because it is in front of the black hole
-      
-      vec3 finalCol = backCol + frontCol;
-      
-      // GLOBAL GLOW
-      float globalGlow = smoothstep(2.0, 0.5, r) * 0.15;
-      finalCol += getThermoColor(globalGlow * (0.5 + loadNormalized * 0.5));
+      // Global ambient glow
+      float globalGlow = smoothstep(2.0, 0.4, r) * 0.1 * eventHorizon;
+      col += vec3(globalGlow);
       
       // SYS.ONLINE JITTER
       if (uOnline < 0.5) {
-         finalCol *= (0.8 + 0.2 * noise(vec2(uTime * 20.0)));
+         col *= (0.8 + 0.2 * noise(vec2(uTime * 20.0)));
       }
       
-      float alpha = clamp(dot(finalCol, vec3(0.5)), 0.0, 1.0);
-      gl_FragColor = vec4(finalCol, alpha);
+      float alpha = clamp(dot(col, vec3(0.333)) * 1.5, 0.0, 1.0);
+      gl_FragColor = vec4(col, alpha);
     }
   `
 };
+
+function GravityParticles() {
+  const count = 1000;
+  const meshRef = useRef<THREE.Points>(null);
+  const materialRef = useRef<THREE.PointsMaterial>(null);
+  
+  // Initialize particles
+  const particles = useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    const params = new Float32Array(count * 3); // x: radius, y: angle, z: speed
+    for (let i = 0; i < count; i++) {
+      const r = Math.random() * 4.0 + 1.0;
+      const theta = Math.random() * Math.PI * 2;
+      params[i * 3] = r;
+      params[i * 3 + 1] = theta;
+      params[i * 3 + 2] = Math.random() * 0.5 + 0.1; // Speed multiplier
+      
+      positions[i * 3] = 0;
+      positions[i * 3 + 1] = 0;
+      positions[i * 3 + 2] = 0;
+    }
+    return { positions, params };
+  }, [count]);
+
+  const [cogLoad, setCogLoad] = useState(85);
+  useEffect(() => {
+    const unsub = subscribeSystemState((state) => setCogLoad(state.cognitiveLoad));
+    return () => unsub();
+  }, []);
+
+  useFrame((state, delta) => {
+    if (!meshRef.current) return;
+    const positions = meshRef.current.geometry.attributes.position.array as Float32Array;
+    
+    const loadNormalized = Math.max(0, Math.min(1, cogLoad / 100));
+    const pullSpeed = 0.3 + loadNormalized * 1.5;
+    const orbitSpeed = 0.8 + loadNormalized * 2.0;
+    
+    for (let i = 0; i < count; i++) {
+      let r = particles.params[i * 3];
+      let theta = particles.params[i * 3 + 1];
+      const speed = particles.params[i * 3 + 2];
+      
+      // Spiral inward
+      r -= speed * pullSpeed * delta * (1.0 / (r + 0.1));
+      theta += speed * orbitSpeed * delta * (1.0 / (r * r + 0.1));
+      
+      // Reset if crosses event horizon (0.35 in shader uv space, which is 0.35 / 0.4 = 0.875 in world space)
+      if (r < 0.875) {
+        r = Math.random() * 2.0 + 4.0;
+        theta = Math.random() * Math.PI * 2;
+      }
+      
+      particles.params[i * 3] = r;
+      particles.params[i * 3 + 1] = theta;
+      
+      // Calculate true unlensed screen position (squash Y by 4.0)
+      let screenX = r * Math.cos(theta);
+      let screenY = (r * Math.sin(theta)) * 0.25;
+      
+      // Apply exact gravitational lensing push as the shader
+      // uv = vPosition.xy * 0.4, r = length(uv)
+      let uvX = screenX * 0.4;
+      let uvY = screenY * 0.4;
+      let uvR = Math.sqrt(uvX * uvX + uvY * uvY);
+      
+      let gravity = 0.08 / (uvR * uvR + 0.01);
+      
+      positions[i * 3] = screenX * (1.0 + gravity);
+      positions[i * 3 + 1] = screenY * (1.0 + gravity);
+      positions[i * 3 + 2] = 0;
+    }
+    
+    meshRef.current.geometry.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    <points ref={meshRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={particles.positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial 
+        ref={materialRef}
+        size={0.03} 
+        color="#ffffff" 
+        transparent 
+        opacity={0.4} 
+        blending={THREE.AdditiveBlending} 
+        depthWrite={false}
+      />
+    </points>
+  );
+}
 
 function BlackholeMesh() {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -149,11 +216,6 @@ function BlackholeMesh() {
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-      // Use actual drawing buffer dimensions to fix clipping and dpi scaling
-      materialRef.current.uniforms.uResolution.value.set(
-        state.gl.domElement.width, 
-        state.gl.domElement.height
-      );
     }
   });
 
@@ -224,6 +286,7 @@ export default function BlackholeSimulation() {
     <div className="fixed inset-0 z-[-10] pointer-events-none">
       <Canvas camera={{ position: [0, 0, 5] }}>
         <BlackholeMesh />
+        <GravityParticles />
       </Canvas>
     </div>
   );
