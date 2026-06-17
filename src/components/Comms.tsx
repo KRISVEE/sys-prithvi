@@ -13,7 +13,7 @@ const links = [
 
 export default function Comms() {
   return (
-    <div className="fixed bottom-8 left-8 z-50 pointer-events-auto font-mono text-[10px] sm:text-xs text-gray-500 flex flex-col gap-2">
+    <div className="fixed bottom-8 left-8 z-50 pointer-events-auto font-mono text-[10px] sm:text-xs text-gray-500 grid grid-cols-2 gap-x-8 gap-y-2">
       {links.map((link) => (
         <Link
           key={link.label}
