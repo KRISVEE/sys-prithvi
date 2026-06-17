@@ -68,7 +68,7 @@ export default function LiveTelemetry() {
   if (!mounted) return null;
 
   return (
-    <div className="w-full md:w-auto relative md:fixed md:bottom-8 md:right-8 mt-8 mb-4 md:mb-0 md:mt-0 z-20 text-left md:text-right pointer-events-none font-mono text-[10px] sm:text-xs tracking-widest text-gray-500 uppercase flex flex-col items-start md:items-end gap-1">
+    <div className="mt-auto relative md:fixed md:bottom-8 md:right-8 w-full md:w-auto z-20 pb-4 md:pb-0 text-left md:text-right text-[10px] sm:text-xs font-mono tracking-widest text-gray-500 uppercase flex flex-col items-start md:items-end gap-1 pointer-events-none">
       <div className="flex gap-4 w-64 justify-between">
         <span>SYS.STATE:</span>
         <span className="text-gray-300">NOMINALLY DECENTRALIZED</span>
