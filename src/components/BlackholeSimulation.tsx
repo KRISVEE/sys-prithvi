@@ -86,7 +86,7 @@ function BlackholeMesh() {
         materialRef.current.uniforms.uOnline.value = state.sysOnline ? 1.0 : 0.0;
       }
     });
-    return () => unsub();
+    return () => { unsub(); };
   }, []);
 
   useFrame((state) => {
