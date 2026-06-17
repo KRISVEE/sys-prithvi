@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { VaultItem, AccessToken } from "@/types/database";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
 import { Metadata } from "next";
 import { ShieldAlert } from "lucide-react";
 
@@ -90,8 +92,13 @@ export default async function VaultItemPage({
         </div>
       </div>
 
-      <div className="prose prose-invert prose-p:text-gray-300 prose-headings:text-white max-w-none font-mono text-sm p-6 terminal-border">
-        <ReactMarkdown>{item.private_markdown}</ReactMarkdown>
+      <div className="prose prose-invert prose-p:text-gray-300 prose-headings:text-white prose-img:rounded-lg prose-img:border prose-img:border-gray-800 prose-img:w-full max-w-none font-mono text-sm p-6 terminal-border">
+        <ReactMarkdown 
+          remarkPlugins={[remarkGfm]} 
+          rehypePlugins={[rehypeRaw]}
+        >
+          {item.private_markdown}
+        </ReactMarkdown>
       </div>
     </div>
   );
