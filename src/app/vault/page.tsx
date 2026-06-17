@@ -3,7 +3,7 @@ import { VaultItem } from "@/types/database";
 import { Lock } from "lucide-react";
 import Link from "next/link";
 
-export const revalidate = 0; // Disable caching
+export const dynamic = 'force-dynamic';
 
 export default async function VaultPage() {
   const supabaseAdmin = createClient(
