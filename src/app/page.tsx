@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import LiveTelemetry from "@/components/LiveTelemetry";
-import Comms from "@/components/Comms";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;':,./<>?";
 
@@ -83,8 +81,6 @@ export default function Hub() {
         </p>
 
       </motion.div>
-      <LiveTelemetry />
-      <Comms />
     </div>
   );
 }

@@ -3,11 +3,18 @@
 import { useEffect, useState } from "react";
 
 export default function LiveTelemetry() {
+  const [mounted, setMounted] = useState(false);
   const [time, setTime] = useState<string>("");
   const [uptime, setUptime] = useState<number>(0);
   const [cogLoad, setCogLoad] = useState<number>(85);
 
   useEffect(() => {
+    setMounted(true);
+    
+    // Initialize uptime from localStorage or 0
+    const storedUptime = localStorage.getItem("sys_uptime");
+    const initialUptime = storedUptime ? parseFloat(storedUptime) : 0;
+    
     const startTime = Date.now();
 
     const update = () => {
@@ -26,7 +33,9 @@ export default function LiveTelemetry() {
       const ms = date.getMilliseconds().toString().padStart(3, "0");
       setTime(`${timeString}.${ms} IST`);
       
-      setUptime((now - startTime) / 1000);
+      // Calculate exact delta and add to initial
+      const currentUptime = initialUptime + (now - startTime) / 1000;
+      setUptime(currentUptime);
     };
 
     update();
@@ -37,11 +46,26 @@ export default function LiveTelemetry() {
       setCogLoad(Math.floor(Math.random() * (94 - 82 + 1) + 82));
     }, 2000);
     
+    // Save to localStorage every second
+    const saveInterval = setInterval(() => {
+      const now = Date.now();
+      const currentUptime = initialUptime + (now - startTime) / 1000;
+      localStorage.setItem("sys_uptime", currentUptime.toString());
+    }, 1000);
+    
     return () => {
       clearInterval(interval);
       clearInterval(cogInterval);
+      clearInterval(saveInterval);
+      
+      // Save exact amount on unmount
+      const now = Date.now();
+      const currentUptime = initialUptime + (now - startTime) / 1000;
+      localStorage.setItem("sys_uptime", currentUptime.toString());
     };
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="fixed bottom-8 right-8 z-50 pointer-events-none font-mono text-[10px] sm:text-xs tracking-widest text-gray-500 uppercase flex flex-col items-end gap-1 text-right">
