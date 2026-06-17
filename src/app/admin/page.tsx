@@ -13,6 +13,7 @@ function FrequenciesManager() {
   const [title, setTitle] = useState("");
   const [type, setType] = useState("Long-form");
   const [content, setContent] = useState("");
+  const [editorKey, setEditorKey] = useState(0);
 
   useEffect(() => {
     fetchItems();
@@ -30,6 +31,7 @@ function FrequenciesManager() {
     if (!error) {
       setTitle("");
       setContent("");
+      setEditorKey(prev => prev + 1);
       fetchItems();
     } else {
       alert(error.message);
@@ -66,6 +68,7 @@ function FrequenciesManager() {
             <option value="Math Logic">Math Logic</option>
           </select>
           <RichTextEditor
+            key={editorKey}
             placeholder="RICH TEXT CONTENT"
             value={content}
             onChange={setContent}
@@ -254,6 +257,7 @@ function VaultManager() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [markdown, setMarkdown] = useState("");
+  const [editorKey, setEditorKey] = useState(0);
 
   useEffect(() => {
     fetchItems();
@@ -278,6 +282,7 @@ function VaultManager() {
       setTitle("");
       setSummary("");
       setMarkdown("");
+      setEditorKey(prev => prev + 1);
       fetchItems();
     } else {
       alert("Error creating payload. Check RLS policies: " + error.message);
@@ -340,6 +345,7 @@ function VaultManager() {
             required
           />
           <RichTextEditor
+            key={editorKey}
             placeholder="PRIVATE PAYLOAD (Rich Text / HTML)"
             value={markdown}
             onChange={setMarkdown}
