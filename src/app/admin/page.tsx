@@ -13,7 +13,7 @@ function FrequenciesManager() {
   const [title, setTitle] = useState("");
   const [type, setType] = useState("Long-form");
   const [content, setContent] = useState("");
-  const [editorKey, setEditorKey] = useState(0);
+  const [editorKey, setEditorKey] = useState(Date.now());
 
   useEffect(() => {
     fetchItems();
@@ -31,7 +31,7 @@ function FrequenciesManager() {
     if (!error) {
       setTitle("");
       setContent("");
-      setEditorKey(prev => prev + 1);
+      setEditorKey(Date.now());
       fetchItems();
     } else {
       alert(error.message);
@@ -257,7 +257,7 @@ function VaultManager() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [markdown, setMarkdown] = useState("");
-  const [editorKey, setEditorKey] = useState(0);
+  const [editorKey, setEditorKey] = useState(Date.now());
 
   useEffect(() => {
     fetchItems();
@@ -282,7 +282,7 @@ function VaultManager() {
       setTitle("");
       setSummary("");
       setMarkdown("");
-      setEditorKey(prev => prev + 1);
+      setEditorKey(Date.now());
       fetchItems();
     } else {
       alert("Error creating payload. Check RLS policies: " + error.message);
