@@ -76,7 +76,7 @@ export default async function VaultItemPage({
 
   return (
     <div className="w-full pt-32 pb-16 px-4 sm:px-8 lg:px-12 break-words overflow-hidden">
-      <div className="p-6 mb-8 border border-green-900/50 bg-black/30 backdrop-blur-md shadow-2xl rounded-sm">
+      <div className="terminal-border p-6 mb-8 border-green-900/50">
         <div className="flex justify-between items-center text-xs font-mono mb-4">
           <span className="text-green-500">SECURE CONNECTION ESTABLISHED</span>
           <span className="text-gray-500">VIEWS: {access.view_count + 1}</span>
@@ -90,7 +90,7 @@ export default async function VaultItemPage({
       </div>
 
       <div 
-        className="prose prose-sm sm:prose-base prose-invert prose-p:text-gray-300 prose-headings:text-white prose-img:rounded-lg prose-img:border prose-img:border-gray-800 prose-img:max-w-full prose-img:h-auto max-w-full font-mono text-sm p-4 sm:p-6 border border-gray-800/50 bg-black/30 backdrop-blur-md shadow-2xl rounded-sm"
+        className="prose prose-sm sm:prose-base prose-invert prose-p:text-gray-300 prose-headings:text-white prose-img:rounded-lg prose-img:border prose-img:border-gray-800 prose-img:max-w-full prose-img:h-auto max-w-full font-mono text-sm p-4 sm:p-6 terminal-border"
         dangerouslySetInnerHTML={{ __html: item.private_markdown }}
       />
 
