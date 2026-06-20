@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { NodeItem, ArsenalItem } from "@/types/database";
+import NodeCard from "@/components/NodeCard";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,24 +30,7 @@ export default async function NodesPage() {
           <div className="text-gray-500 font-mono text-sm col-span-2">No active nodes executing.</div>
         )}
         {nodesToRender.map((node) => (
-          <div key={node.id} className="terminal-border p-6 hover:border-gray-600 transition-colors">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold tracking-tight">{node.title}</h2>
-              <span className="text-[10px] font-mono tracking-widest px-2 py-1 bg-gray-900 border border-gray-700 text-gray-400 uppercase">
-                {node.status}
-              </span>
-            </div>
-            <p className="text-gray-400 mb-6 text-sm whitespace-pre-wrap">
-              {node.description}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {node.tags.map((tech) => (
-                <span key={tech} className="text-xs font-mono text-gray-500">
-                  [{tech.trim()}]
-                </span>
-              ))}
-            </div>
-          </div>
+          <NodeCard key={node.id} node={node} />
         ))}
       </div>
 

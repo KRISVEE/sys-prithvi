@@ -487,6 +487,7 @@ function NodesManager() {
   const [status, setStatus] = useState("EXECUTING");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
+  const [link, setLink] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -507,7 +508,8 @@ function NodesManager() {
         title,
         status,
         description,
-        tags: tagArray
+        tags: tagArray,
+        link: link || null
       }).eq("id", editingId);
       if (!error) {
         setEditingId(null);
@@ -515,6 +517,7 @@ function NodesManager() {
         setStatus("EXECUTING");
         setDescription("");
         setTags("");
+        setLink("");
         fetchItems();
       } else {
         alert("Error updating node. Check RLS policies: " + error.message);
@@ -524,13 +527,15 @@ function NodesManager() {
         title,
         status,
         description,
-        tags: tagArray
+        tags: tagArray,
+        link: link || null
       });
       if (!error) {
         setTitle("");
         setStatus("EXECUTING");
         setDescription("");
         setTags("");
+        setLink("");
         fetchItems();
       } else {
         alert("Error creating node. Check RLS policies: " + error.message);
@@ -544,6 +549,7 @@ function NodesManager() {
     setStatus(item.status);
     setDescription(item.description || "");
     setTags((item.tags || []).join(", "));
+    setLink(item.link || "");
   };
 
   const handleDelete = async (id: string) => {
@@ -589,17 +595,24 @@ function NodesManager() {
           />
           <input
             type="text"
-            placeholder="TAGS (comma separated)"
+            placeholder="TAGS (COMMA SEPARATED)"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full"
             required
           />
+          <input
+            type="url"
+            placeholder="LINK (OPTIONAL)"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full"
+          />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
             {editingId ? "UPDATE NODE" : "INITIALIZE NODE"}
           </button>
           {editingId && (
-            <button type="button" onClick={() => { setEditingId(null); setTitle(""); setStatus("EXECUTING"); setDescription(""); setTags(""); }} className="border border-gray-800 hover:border-red-500 p-3 text-sm font-mono uppercase transition-colors text-red-500">
+            <button type="button" onClick={() => { setEditingId(null); setTitle(""); setStatus("EXECUTING"); setDescription(""); setTags(""); setLink(""); }} className="border border-gray-800 hover:border-red-500 p-3 text-sm font-mono uppercase transition-colors text-red-500">
               CANCEL EDIT
             </button>
           )}

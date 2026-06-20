@@ -29,6 +29,7 @@ export interface NodeItem {
   status: string;
   tags: string[];
   description: string | null;
+  link?: string | null;
   created_at: string;
 }
 
