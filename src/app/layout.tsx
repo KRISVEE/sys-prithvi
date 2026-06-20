@@ -35,7 +35,10 @@ export default function RootLayout({
         </div>
         <Navigation />
         <HUDOpacitySlider />
-        <div className="relative z-10 min-h-screen bg-[rgba(0,0,0,var(--container-opacity,0.7))] backdrop-blur-sm transition-all duration-200">
+        <div 
+          className="relative z-10 min-h-screen transition-colors duration-200"
+          style={{ backgroundColor: "rgba(0, 0, 0, var(--container-opacity, 0.5))" }}
+        >
           {children}
         </div>
       </body>
