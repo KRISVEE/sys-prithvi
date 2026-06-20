@@ -14,6 +14,7 @@ function FrequenciesManager() {
   const [type, setType] = useState("Long-form");
   const [content, setContent] = useState("");
   const [editorKey, setEditorKey] = useState(Date.now());
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -27,15 +28,36 @@ function FrequenciesManager() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("frequencies").insert({ title, type, content_markdown: content });
-    if (!error) {
-      setTitle("");
-      setContent("");
-      setEditorKey(Date.now());
-      fetchItems();
+    if (editingId) {
+      const { error } = await supabase.from("frequencies").update({ title, type, content_markdown: content }).eq("id", editingId);
+      if (!error) {
+        setEditingId(null);
+        setTitle("");
+        setContent("");
+        setEditorKey(Date.now());
+        fetchItems();
+      } else {
+        alert(error.message);
+      }
     } else {
-      alert(error.message);
+      const { error } = await supabase.from("frequencies").insert({ title, type, content_markdown: content });
+      if (!error) {
+        setTitle("");
+        setContent("");
+        setEditorKey(Date.now());
+        fetchItems();
+      } else {
+        alert(error.message);
+      }
     }
+  };
+
+  const handleEdit = (item: Frequency) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setType(item.type);
+    setContent(item.content_markdown);
+    setEditorKey(Date.now());
   };
 
   const handleDelete = async (id: string) => {
@@ -74,8 +96,13 @@ function FrequenciesManager() {
             onChange={setContent}
           />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
-            DEPLOY FREQUENCY
+            {editingId ? "UPDATE FREQUENCY" : "DEPLOY FREQUENCY"}
           </button>
+          {editingId && (
+            <button type="button" onClick={() => { setEditingId(null); setTitle(""); setContent(""); setEditorKey(Date.now()); }} className="border border-gray-800 hover:border-red-500 p-3 text-sm font-mono uppercase transition-colors text-red-500">
+              CANCEL EDIT
+            </button>
+          )}
         </form>
       </div>
       <div>
@@ -88,9 +115,14 @@ function FrequenciesManager() {
                   <div className="text-xs font-mono text-gray-500 mb-1">[{item.type}]</div>
                   <div className="font-bold">{item.title}</div>
                 </div>
-                <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                  [ DEL ]
-                </button>
+                <div className="flex gap-4">
+                  <button onClick={() => handleEdit(item)} className="text-xs font-mono text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    [ EDIT ]
+                  </button>
+                  <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    [ DEL ]
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -110,6 +142,7 @@ function TrajectoryManager() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [orderIndex, setOrderIndex] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -123,16 +156,39 @@ function TrajectoryManager() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("trajectory").insert({ vector_id: vectorId, metric, title, description, order_index: orderIndex });
-    if (!error) {
-      setMetric("");
-      setTitle("");
-      setDescription("");
-      setOrderIndex(items.length + 1);
-      fetchItems();
+    if (editingId) {
+      const { error } = await supabase.from("trajectory").update({ vector_id: vectorId, metric, title, description, order_index: orderIndex }).eq("id", editingId);
+      if (!error) {
+        setEditingId(null);
+        setMetric("");
+        setTitle("");
+        setDescription("");
+        setOrderIndex(items.length);
+        fetchItems();
+      } else {
+        alert(error.message);
+      }
     } else {
-      alert(error.message);
+      const { error } = await supabase.from("trajectory").insert({ vector_id: vectorId, metric, title, description, order_index: orderIndex });
+      if (!error) {
+        setMetric("");
+        setTitle("");
+        setDescription("");
+        setOrderIndex(items.length + 1);
+        fetchItems();
+      } else {
+        alert(error.message);
+      }
     }
+  };
+
+  const handleEdit = (item: Trajectory) => {
+    setEditingId(item.id);
+    setVectorId(item.vector_id);
+    setMetric(item.metric);
+    setTitle(item.title);
+    setDescription(item.description);
+    setOrderIndex(item.order_index);
   };
 
   const handleDelete = async (id: string) => {
@@ -188,8 +244,13 @@ function TrajectoryManager() {
             required
           />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
-            PLOT VECTOR
+            {editingId ? "UPDATE VECTOR" : "PLOT VECTOR"}
           </button>
+          {editingId && (
+            <button type="button" onClick={() => { setEditingId(null); setMetric(""); setTitle(""); setDescription(""); }} className="border border-gray-800 hover:border-red-500 p-3 text-sm font-mono uppercase transition-colors text-red-500">
+              CANCEL EDIT
+            </button>
+          )}
         </form>
       </div>
       <div>
@@ -202,9 +263,14 @@ function TrajectoryManager() {
                   <div className="text-xs font-mono text-gray-500 mb-1">[{item.vector_id}] • {item.metric}</div>
                   <div className="font-bold">{item.title}</div>
                 </div>
-                <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                  [ DEL ]
-                </button>
+                <div className="flex gap-4">
+                  <button onClick={() => handleEdit(item)} className="text-xs font-mono text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    [ EDIT ]
+                  </button>
+                  <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    [ DEL ]
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -214,7 +280,7 @@ function TrajectoryManager() {
   );
 }
 
-function VaultItemCard({ item, onDelete, onMint }: { item: VaultItem, onDelete: (id: string) => void, onMint: (id: string) => Promise<string | null> }) {
+function VaultItemCard({ item, onDelete, onEdit, onMint }: { item: VaultItem, onDelete: (id: string) => void, onEdit: (item: VaultItem) => void, onMint: (id: string) => Promise<string | null> }) {
   const [copied, setCopied] = useState(false);
 
   const handleMint = async () => {
@@ -234,9 +300,14 @@ function VaultItemCard({ item, onDelete, onMint }: { item: VaultItem, onDelete: 
           <div className="font-bold">{item.public_title}</div>
           <div className="text-[10px] font-mono text-gray-600 mt-2">{new Date(item.created_at).toLocaleDateString()}</div>
         </div>
-        <button onClick={() => onDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-          [ DELETE ]
-        </button>
+        <div className="flex gap-4">
+          <button onClick={() => onEdit(item)} className="text-xs font-mono text-blue-500 hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100">
+            [ EDIT ]
+          </button>
+          <button onClick={() => onDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+            [ DELETE ]
+          </button>
+        </div>
       </div>
       <button
         onClick={handleMint}
@@ -258,35 +329,65 @@ function VaultManager() {
   const [summary, setSummary] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [editorKey, setEditorKey] = useState(Date.now());
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
   }, []);
 
   const fetchItems = async () => {
-    const { data } = await supabase.from("the_vault").select("id, target_company, public_title, created_at").order("created_at", { ascending: false });
+    const { data } = await supabase.from("the_vault").select("*").order("created_at", { ascending: false });
     if (data) setItems(data as VaultItem[]);
     setLoading(false);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("the_vault").insert({
-      target_company: company,
-      public_title: title,
-      public_summary: summary,
-      private_markdown: markdown
-    });
-    if (!error) {
-      setCompany("");
-      setTitle("");
-      setSummary("");
-      setMarkdown("");
-      setEditorKey(Date.now());
-      fetchItems();
+    if (editingId) {
+      const { error } = await supabase.from("the_vault").update({
+        target_company: company,
+        public_title: title,
+        public_summary: summary,
+        private_markdown: markdown
+      }).eq("id", editingId);
+      if (!error) {
+        setEditingId(null);
+        setCompany("");
+        setTitle("");
+        setSummary("");
+        setMarkdown("");
+        setEditorKey(Date.now());
+        fetchItems();
+      } else {
+        alert("Error updating payload. Check RLS policies: " + error.message);
+      }
     } else {
-      alert("Error creating payload. Check RLS policies: " + error.message);
+      const { error } = await supabase.from("the_vault").insert({
+        target_company: company,
+        public_title: title,
+        public_summary: summary,
+        private_markdown: markdown
+      });
+      if (!error) {
+        setCompany("");
+        setTitle("");
+        setSummary("");
+        setMarkdown("");
+        setEditorKey(Date.now());
+        fetchItems();
+      } else {
+        alert("Error creating payload. Check RLS policies: " + error.message);
+      }
     }
+  };
+
+  const handleEdit = (item: VaultItem) => {
+    setEditingId(item.id);
+    setCompany(item.target_company || "");
+    setTitle(item.public_title || "");
+    setSummary(item.public_summary || "");
+    setMarkdown(item.private_markdown || "");
+    setEditorKey(Date.now());
   };
 
   const handleDelete = async (id: string) => {
@@ -351,8 +452,13 @@ function VaultManager() {
             onChange={setMarkdown}
           />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
-            SECURE PAYLOAD
+            {editingId ? "UPDATE PAYLOAD" : "SECURE PAYLOAD"}
           </button>
+          {editingId && (
+            <button type="button" onClick={() => { setEditingId(null); setCompany(""); setTitle(""); setSummary(""); setMarkdown(""); setEditorKey(Date.now()); }} className="border border-gray-800 hover:border-red-500 p-3 text-sm font-mono uppercase transition-colors text-red-500">
+              CANCEL EDIT
+            </button>
+          )}
         </form>
       </div>
       <div>
@@ -363,7 +469,7 @@ function VaultManager() {
               <p className="font-mono text-xs text-gray-600">NO SECURE ITEMS FOUND.</p>
             )}
             {items.map(item => (
-              <VaultItemCard key={item.id} item={item} onDelete={handleDelete} onMint={mintKey} />
+              <VaultItemCard key={item.id} item={item} onDelete={handleDelete} onEdit={handleEdit} onMint={mintKey} />
             ))}
           </div>
         )}
@@ -381,6 +487,7 @@ function NodesManager() {
   const [status, setStatus] = useState("EXECUTING");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -395,21 +502,48 @@ function NodesManager() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const tagArray = tags.split(",").map(t => t.trim()).filter(t => t.length > 0);
-    const { error } = await supabase.from("nodes").insert({
-      title,
-      status,
-      description,
-      tags: tagArray
-    });
-    if (!error) {
-      setTitle("");
-      setStatus("EXECUTING");
-      setDescription("");
-      setTags("");
-      fetchItems();
+    if (editingId) {
+      const { error } = await supabase.from("nodes").update({
+        title,
+        status,
+        description,
+        tags: tagArray
+      }).eq("id", editingId);
+      if (!error) {
+        setEditingId(null);
+        setTitle("");
+        setStatus("EXECUTING");
+        setDescription("");
+        setTags("");
+        fetchItems();
+      } else {
+        alert("Error updating node. Check RLS policies: " + error.message);
+      }
     } else {
-      alert("Error creating node. Check RLS policies: " + error.message);
+      const { error } = await supabase.from("nodes").insert({
+        title,
+        status,
+        description,
+        tags: tagArray
+      });
+      if (!error) {
+        setTitle("");
+        setStatus("EXECUTING");
+        setDescription("");
+        setTags("");
+        fetchItems();
+      } else {
+        alert("Error creating node. Check RLS policies: " + error.message);
+      }
     }
+  };
+
+  const handleEdit = (item: NodeItem) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setStatus(item.status);
+    setDescription(item.description || "");
+    setTags((item.tags || []).join(", "));
   };
 
   const handleDelete = async (id: string) => {
@@ -462,8 +596,13 @@ function NodesManager() {
             required
           />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
-            INITIALIZE NODE
+            {editingId ? "UPDATE NODE" : "INITIALIZE NODE"}
           </button>
+          {editingId && (
+            <button type="button" onClick={() => { setEditingId(null); setTitle(""); setStatus("EXECUTING"); setDescription(""); setTags(""); }} className="border border-gray-800 hover:border-red-500 p-3 text-sm font-mono uppercase transition-colors text-red-500">
+              CANCEL EDIT
+            </button>
+          )}
         </form>
       </div>
       <div>
@@ -480,9 +619,14 @@ function NodesManager() {
                     <div className="text-xs font-mono text-gray-500 mb-1">STATUS: {item.status}</div>
                     <div className="font-bold">{item.title}</div>
                   </div>
-                  <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                    [ DELETE ]
-                  </button>
+                  <div className="flex gap-4">
+                    <button onClick={() => handleEdit(item)} className="text-xs font-mono text-blue-500 hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100">
+                      [ EDIT ]
+                    </button>
+                    <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                      [ DELETE ]
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -501,6 +645,7 @@ function ArsenalManager() {
   const [category, setCategory] = useState("FRAMEWORKS");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -514,19 +659,43 @@ function ArsenalManager() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("arsenal").insert({
-      category,
-      name,
-      description
-    });
-    if (!error) {
-      setCategory("FRAMEWORKS");
-      setName("");
-      setDescription("");
-      fetchItems();
+    if (editingId) {
+      const { error } = await supabase.from("arsenal").update({
+        category,
+        name,
+        description
+      }).eq("id", editingId);
+      if (!error) {
+        setEditingId(null);
+        setCategory("FRAMEWORKS");
+        setName("");
+        setDescription("");
+        fetchItems();
+      } else {
+        alert("Error updating arsenal item. Check RLS policies: " + error.message);
+      }
     } else {
-      alert("Error creating arsenal item. Check RLS policies: " + error.message);
+      const { error } = await supabase.from("arsenal").insert({
+        category,
+        name,
+        description
+      });
+      if (!error) {
+        setCategory("FRAMEWORKS");
+        setName("");
+        setDescription("");
+        fetchItems();
+      } else {
+        alert("Error creating arsenal item. Check RLS policies: " + error.message);
+      }
     }
+  };
+
+  const handleEdit = (item: ArsenalItem) => {
+    setEditingId(item.id);
+    setCategory(item.category);
+    setName(item.name);
+    setDescription(item.description || "");
   };
 
   const handleDelete = async (id: string) => {
@@ -576,8 +745,13 @@ function ArsenalManager() {
             className="bg-transparent border border-gray-800 p-3 text-sm font-mono focus:outline-none focus:border-white w-full h-24 resize-none"
           />
           <button type="submit" className="border border-gray-800 hover:border-white p-3 text-sm font-mono uppercase transition-colors">
-            ADD TO ARSENAL
+            {editingId ? "UPDATE WEAPON" : "ADD TO ARSENAL"}
           </button>
+          {editingId && (
+            <button type="button" onClick={() => { setEditingId(null); setCategory("FRAMEWORKS"); setName(""); setDescription(""); }} className="border border-gray-800 hover:border-red-500 p-3 text-sm font-mono uppercase transition-colors text-red-500">
+              CANCEL EDIT
+            </button>
+          )}
         </form>
       </div>
       <div>
@@ -597,9 +771,14 @@ function ArsenalManager() {
                         <div className="font-bold text-sm">{item.name}</div>
                         {item.description && <div className="text-xs text-gray-500 font-mono mt-1">{item.description}</div>}
                       </div>
-                      <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                        [ DELETE ]
-                      </button>
+                      <div className="flex gap-4">
+                        <button onClick={() => handleEdit(item)} className="text-xs font-mono text-blue-500 hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100">
+                          [ EDIT ]
+                        </button>
+                        <button onClick={() => handleDelete(item.id)} className="text-xs font-mono text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                          [ DELETE ]
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

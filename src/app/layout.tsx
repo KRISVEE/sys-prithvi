@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import CanvasBackground from "@/components/CanvasBackground";
 import Navigation from "@/components/Navigation";
+import HUDOpacitySlider from "@/components/HUDOpacitySlider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,7 +34,8 @@ export default function RootLayout({
           <CanvasBackground />
         </div>
         <Navigation />
-        <div className="relative z-10">
+        <HUDOpacitySlider />
+        <div className="relative z-10 min-h-screen bg-[rgba(0,0,0,var(--container-opacity,0.7))] backdrop-blur-sm transition-all duration-200">
           {children}
         </div>
       </body>

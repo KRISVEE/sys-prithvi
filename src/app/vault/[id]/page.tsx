@@ -93,6 +93,14 @@ export default async function VaultItemPage({
         className="prose prose-sm sm:prose-base prose-invert prose-p:text-gray-300 prose-headings:text-white prose-img:rounded-lg prose-img:border prose-img:border-gray-800 prose-img:max-w-full prose-img:h-auto max-w-full font-mono text-sm p-4 sm:p-6 terminal-border"
         dangerouslySetInnerHTML={{ __html: item.private_markdown }}
       />
+
+      {/* SOCIAL TRAILING SIGNATURE */}
+      <div className="mt-16 pt-8 border-t border-gray-800/50 flex flex-wrap gap-6 text-[10px] sm:text-xs font-mono tracking-widest text-gray-500 uppercase">
+        <a href="https://x.com/koronovoid" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">[X / TWITTER]</a>
+        <a href="https://medium.com/@Void.Prithvi" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">[MEDIUM]</a>
+        <a href="https://www.instagram.com/prithvi.dll/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">[INSTAGRAM]</a>
+        <a href="mailto:yoitspandamon@zohomail.in" className="hover:text-white transition-colors">[SECURE COMMS]</a>
+      </div>
     </div>
   );
 }
