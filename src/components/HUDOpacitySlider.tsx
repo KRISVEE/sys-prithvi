@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 export default function HUDOpacitySlider() {
-  const [opacity, setOpacity] = useState(0.5);
+  const [opacity, setOpacity] = useState(0);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--container-opacity", opacity.toString());
