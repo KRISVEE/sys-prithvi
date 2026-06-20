@@ -54,9 +54,9 @@ function FrequenciesManager() {
 
   const handleEdit = (item: Frequency) => {
     setEditingId(item.id);
-    setTitle(item.title);
-    setType(item.type);
-    setContent(item.content_markdown);
+    setTitle(item.title || "");
+    setType(item.type || "");
+    setContent(item.content_markdown || "");
     setEditorKey(Date.now());
   };
 
